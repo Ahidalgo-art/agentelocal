@@ -1,0 +1,26 @@
+[importlinter]
+root_packages =
+    agente_local
+
+[importlinter:contract:domain_isolation]
+name = Domain must not import application, infrastructure or entrypoints
+type = forbidden
+source_modules =
+    agente_local.domain
+forbidden_modules =
+    agente_local.application
+    agente_local.infrastructure
+    agente_local.entrypoints
+    sqlalchemy
+    fastapi
+
+[importlinter:contract:application_isolation]
+name = Application must not import infrastructure or entrypoints
+type = forbidden
+source_modules =
+    agente_local.application
+forbidden_modules =
+    agente_local.infrastructure
+    agente_local.entrypoints
+    sqlalchemy
+    fastapi

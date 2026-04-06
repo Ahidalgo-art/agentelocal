@@ -1,0 +1,24 @@
+# Python caches and tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+
+# Local virtual environments
+.venv/
+venv/
+
+# Local secrets and env files
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Local databases and logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
