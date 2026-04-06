@@ -1,6 +1,7 @@
 [importlinter]
 root_packages =
     agente_local
+include_external_packages = True
 
 [importlinter:contract:domain_isolation]
 name = Domain must not import application, infrastructure or entrypoints
