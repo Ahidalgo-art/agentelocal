@@ -43,6 +43,19 @@ Invoke-RestMethod -Method Get -Uri http://127.0.0.1:8000/v1/health | ConvertTo-J
 - Runbooks operacionales: `docs/runbooks/`
 
 ## 6) Bitácora de pausa/reinicio
+### 2026-04-06 — Cierre formal Sprint 0 (GO)
+- Estado al pausar: Sprint 0 cerrado en `GO` con baseline técnico/operativo, repositorio publicado y CI remoto en verde.
+- Completado:
+	- Git inicializado y remoto configurado en `https://github.com/Ahidalgo-art/agentelocal.git`.
+	- Pipeline `Backend CI` ajustado para estructura real + servicio PostgreSQL en migraciones.
+	- Política de secretos/config por entorno cerrada con `.gitignore` + `backend/.env.example` + runbook operativo.
+	- Dependencia `psycopg[binary]` añadida para compatibilidad de migraciones en CI.
+- Evidencia verificable:
+	- Commit de cierre técnico: `2520da6a290f4db39bd4f6b571668a4cd4c90de2`.
+	- Run exitoso de CI: `https://github.com/Ahidalgo-art/agentelocal/actions/runs/24030561185` (`quality-security-gates: success`).
+- Próximo paso: iniciar la primera feature de negocio del Sprint 1 (`POST /v1/rates/import`) manteniendo patrón hexagonal.
+- Riesgos/deuda residual: ninguno crítico para arranque de Sprint 1.
+
 ### 2026-04-06 — Cierre de política de secretos/config por entorno
 - Estado al pausar: se cerró el baseline operativo de secretos y configuración por entorno con artefactos y checklist verificable.
 - Próximo paso: validar la ejecución real del workflow en GitHub Actions tras push para cerrar el riesgo residual del pipeline.
