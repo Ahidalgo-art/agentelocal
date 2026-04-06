@@ -76,3 +76,12 @@ Invoke-RestMethod -Method Get -Uri http://127.0.0.1:8000/v1/health | ConvertTo-J
 - **En proceso:** Ninguno; lo ejecutado hoy quedó `DONE` según AGENTS.md con evidencia en commits y Actions.
 - **Próxima sesión:** Implementar siguiente incremento de correo/calendar en `backend/src/agente_local/application/ports/` + `backend/src/agente_local/infrastructure/` para sync incremental, con tests en `backend/tests/` sin romper contratos actuales.
 - **Riesgos / deuda:** Evitar desvíos a ejemplos de plantilla; el alcance válido para este repo está en `PROJECT_CORREO_AGENT.md` y `docs/specs/SPEC_CORREO_CALENDAR_AGENT_LOCAL.md`.
+
+## Bitácora — 2026-04-06 (continuación)
+- **Completado:** se consolidó el flujo de sync workspace con endpoint `POST /v1/sync/{account_id}`, persistencia de `calendar_source` + `calendar_event`, y validación explícita de configuración Google por entorno sin hardcode.
+- **Completado:** se eliminó `.env` duplicado en raíz y se estableció `backend/.env` como fuente única local; `backend/.env.example` y `QUICKSTART.md` quedaron actualizados con variables Google requeridas.
+- **Completado:** recuperación controlada en Calendar ante expiración de `sync_token` (HTTP 410): se marca cursor `stale` y se ejecuta re-sync sin token para ese calendario.
+- **Verificación:** `ruff check` en archivos modificados y `pytest -q` completo en verde (52 passed, cobertura 84.31%).
+- **En proceso:** ninguno abierto.
+- **Próxima sesión:** aplicar el mismo patrón de degradación controlada para Gmail history invalidado y registrar `sync_run` con estado `partial/needs_full_resync` cuando corresponda.
+- **Riesgos / deuda:** persisten cambios autogenerados en `backend/src/nuevo_proyecto_backend.egg-info/` fuera del alcance funcional; no se incluyen en commit limpio.
