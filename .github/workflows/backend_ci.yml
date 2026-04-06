@@ -15,12 +15,26 @@ on:
 jobs:
   quality-security-gates:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agente_local_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d agente_local_ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     defaults:
       run:
         working-directory: backend
     env:
       PYTHONPATH: src
-      DATABASE_URL: sqlite:///./ci.db
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/agente_local_ci
       ALEMBIC_VERSION_TABLE: app_alembic_version_ci
       APP_MODULE: agente_local.main
 
