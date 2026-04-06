@@ -8,12 +8,15 @@ from sqlalchemy import delete
 
 from agente_local.infrastructure.persistence.database import create_session_factory
 from agente_local.infrastructure.persistence.models import (
+    CalendarEventModel,
+    CalendarSourceModel,
     GmailThreadModel,
     SyncCursorModel,
     SyncRunModel,
     WorkspaceAccountModel,
 )
 from agente_local.infrastructure.persistence.repositories import (
+    SqlAlchemyCalendarRepository,
     SqlAlchemySyncCursorRepository,
     SqlAlchemyThreadRepository,
 )
@@ -68,6 +71,65 @@ async def test_thread_repository_crud_against_postgres() -> None:
         async with session_factory() as session:
             if thread_id is not None:
                 await session.execute(delete(GmailThreadModel).where(GmailThreadModel.id == uuid.UUID(thread_id)))
+            await session.execute(delete(WorkspaceAccountModel).where(WorkspaceAccountModel.id == account_id))
+            await session.commit()
+
+
+@pytest.mark.asyncio
+async def test_calendar_repository_upserts_sources_and_events_against_postgres() -> None:
+    session_factory = create_session_factory()
+    repository = SqlAlchemyCalendarRepository(session_factory)
+    account_id = uuid.uuid4()
+    source_id: str | None = None
+
+    async with session_factory() as session:
+        session.add(
+            WorkspaceAccountModel(
+                id=account_id,
+                external_account_email=f"{account_id}@example.com",
+                display_name="Agent Local",
+            )
+        )
+        await session.commit()
+
+    try:
+        source = await repository.upsert_calendar_source(
+            account_id=str(account_id),
+            google_calendar_id="primary",
+            summary="Primary",
+            primary_flag=True,
+            selected_flag=True,
+            timezone="UTC",
+        )
+        fetched_source = await repository.get_calendar_source(str(account_id), "primary")
+        event = await repository.upsert_calendar_event(
+            calendar_source_id=source.id,
+            google_event_id="event-42",
+            status="confirmed",
+            summary="Demo",
+            organizer_email="owner@example.com",
+            attendees_json=[{"email": "a@example.com", "response_status": "accepted"}],
+            all_day=False,
+        )
+
+        source_id = source.id
+
+        assert source.google_calendar_id == "primary"
+        assert fetched_source is not None
+        assert fetched_source.id == source.id
+        assert event.google_event_id == "event-42"
+        assert event.status == "confirmed"
+    finally:
+        async with session_factory() as session:
+            if source_id is not None:
+                await session.execute(
+                    delete(CalendarEventModel).where(
+                        CalendarEventModel.calendar_source_id == uuid.UUID(source_id)
+                    )
+                )
+            await session.execute(
+                delete(CalendarSourceModel).where(CalendarSourceModel.account_id == account_id)
+            )
             await session.execute(delete(WorkspaceAccountModel).where(WorkspaceAccountModel.id == account_id))
             await session.commit()
 

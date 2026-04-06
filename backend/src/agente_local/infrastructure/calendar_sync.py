@@ -14,9 +14,14 @@ import asyncio
 from datetime import UTC, datetime
 from typing import Optional
 
+from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
 
-from agente_local.application.ports.calendar_sync import CalendarEvent, CalendarSyncPort
+from agente_local.application.ports.calendar_sync import (
+    CalendarEvent,
+    CalendarSyncPort,
+    CalendarSyncTokenExpiredError,
+)
 from agente_local.infrastructure.google_credentials import GoogleCredentialProvider
 
 
@@ -152,4 +157,12 @@ class CalendarSyncAdapter(CalendarSyncPort):
 
             return events, next_sync_token
 
-        return await asyncio.to_thread(_run)
+        try:
+            return await asyncio.to_thread(_run)
+        except HttpError as exc:
+            status_code = getattr(getattr(exc, "resp", None), "status", None)
+            if status_code == 410:
+                raise CalendarSyncTokenExpiredError(
+                    f"Calendar sync token expired for calendar_id={calendar_id}"
+                ) from exc
+            raise

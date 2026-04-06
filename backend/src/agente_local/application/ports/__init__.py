@@ -12,6 +12,12 @@ from agente_local.application.ports.gmail_sync import (
 from agente_local.application.ports.calendar_sync import (
     CalendarEvent,
     CalendarSyncPort,
+    CalendarSyncTokenExpiredError,
+)
+from agente_local.application.ports.calendar_repository import (
+    CalendarEventEntity,
+    CalendarRepositoryPort,
+    CalendarSourceEntity,
 )
 from agente_local.application.ports.thread_repository import (
     ThreadEntity,
@@ -34,6 +40,10 @@ __all__ = [
     "GmailSyncPort",
     "CalendarEvent",
     "CalendarSyncPort",
+    "CalendarSyncTokenExpiredError",
+    "CalendarSourceEntity",
+    "CalendarEventEntity",
+    "CalendarRepositoryPort",
     "ThreadEntity",
     "ThreadRepositoryPort",
     "TriageResult",

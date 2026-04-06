@@ -5,6 +5,11 @@ from datetime import datetime, timezone
 import pytest
 
 from agente_local.application import ports
+from agente_local.application.ports.calendar_repository import (
+    CalendarEventEntity,
+    CalendarRepositoryPort,
+    CalendarSourceEntity,
+)
 from agente_local.application.ports.calendar_sync import CalendarEvent, CalendarSyncPort
 from agente_local.application.ports.drafting_service import DraftProposal, DraftingServicePort
 from agente_local.application.ports.gmail_sync import EmailMessage, EmailThread, GmailSyncPort
@@ -169,6 +174,63 @@ class DummyCalendarSyncPort(CalendarSyncPort):
         )
 
 
+class DummyCalendarRepositoryPort(CalendarRepositoryPort):
+    def __init__(self) -> None:
+        now = datetime.now(timezone.utc)
+        self.source = CalendarSourceEntity(
+            id="source-1",
+            account_id="account-1",
+            google_calendar_id="primary",
+            summary="Primary",
+            primary_flag=True,
+            selected_flag=True,
+            timezone="UTC",
+            created_at=now,
+            updated_at=now,
+        )
+
+    async def upsert_calendar_source(self, account_id: str, google_calendar_id: str, **fields):
+        now = datetime.now(timezone.utc)
+        return CalendarSourceEntity(
+            id=self.source.id,
+            account_id=account_id,
+            google_calendar_id=google_calendar_id,
+            summary=fields.get("summary"),
+            primary_flag=bool(fields.get("primary_flag", True)),
+            selected_flag=bool(fields.get("selected_flag", True)),
+            timezone=fields.get("timezone"),
+            created_at=now,
+            updated_at=now,
+        )
+
+    async def get_calendar_source(self, account_id: str, google_calendar_id: str):
+        if account_id == self.source.account_id and google_calendar_id == self.source.google_calendar_id:
+            return self.source
+        return None
+
+    async def upsert_calendar_event(self, calendar_source_id: str, google_event_id: str, **fields):
+        now = datetime.now(timezone.utc)
+        return CalendarEventEntity(
+            id="event-1",
+            calendar_source_id=calendar_source_id,
+            google_event_id=google_event_id,
+            status=str(fields.get("status", "confirmed")),
+            summary=fields.get("summary"),
+            description=fields.get("description"),
+            organizer_email=fields.get("organizer_email"),
+            attendees_json=list(fields.get("attendees_json", [])),
+            starts_at=fields.get("starts_at"),
+            ends_at=fields.get("ends_at"),
+            all_day=bool(fields.get("all_day", False)),
+            location=fields.get("location"),
+            meet_link=fields.get("meet_link"),
+            etag=fields.get("etag"),
+            updated_remote_at=fields.get("updated_remote_at"),
+            created_at=now,
+            updated_at=now,
+        )
+
+
 class DummyTriageServicePort(TriageServicePort):
     async def score_thread(
         self,
@@ -218,6 +280,10 @@ def test_ports_namespace_exports_expected_symbols() -> None:
         "GmailSyncPort",
         "CalendarEvent",
         "CalendarSyncPort",
+        "CalendarSyncTokenExpiredError",
+        "CalendarSourceEntity",
+        "CalendarEventEntity",
+        "CalendarRepositoryPort",
         "ThreadEntity",
         "ThreadRepositoryPort",
         "TriageResult",
@@ -293,6 +359,30 @@ async def test_calendar_sync_port_contract() -> None:
 
 
 @pytest.mark.asyncio
+async def test_calendar_repository_port_contract() -> None:
+    repository = DummyCalendarRepositoryPort()
+
+    source = await repository.upsert_calendar_source(
+        "account-1",
+        "primary",
+        summary="Primary",
+        primary_flag=True,
+    )
+    fetched = await repository.get_calendar_source("account-1", "primary")
+    event = await repository.upsert_calendar_event(
+        source.id,
+        "event-1",
+        status="confirmed",
+        attendees_json=[{"email": "a@example.com"}],
+    )
+
+    assert source.google_calendar_id == "primary"
+    assert fetched is not None
+    assert fetched.id == "source-1"
+    assert event.google_event_id == "event-1"
+
+
+@pytest.mark.asyncio
 async def test_triage_and_drafting_ports_contract() -> None:
     triage = DummyTriageServicePort()
     drafting = DummyDraftingServicePort()
@@ -316,3 +406,4 @@ async def test_triage_and_drafting_ports_contract() -> None:
     assert triage_result.requires_response is True
     assert draft.intent == "acknowledge"
     assert draft.draft_subject == "Subject"
+

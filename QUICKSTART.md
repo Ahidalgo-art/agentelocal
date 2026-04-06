@@ -55,6 +55,10 @@ Copy-Item .env.example .env
 
 # 1.2 Ajusta DATABASE_URL en backend/.env antes de arrancar
 # DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/agente_local
+# 1.3 Configura Google OAuth para sync (si usaras /v1/sync/{account_id})
+# GOOGLE_CLIENT_ID=<tu_client_id>
+# GOOGLE_CLIENT_SECRET=<tu_client_secret>
+# GOOGLE_PROJECT_ID=<tu_project_id>
 
 # 2. Instala dependencias
 conda run -n AgenteLocal pip install -e .

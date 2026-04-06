@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from googleapiclient.errors import HttpError
 
 from agente_local.infrastructure.calendar_sync import (
     CalendarSyncAdapter,
@@ -13,6 +14,7 @@ from agente_local.infrastructure.calendar_sync import (
     _extract_meet_link,
     _parse_datetime,
 )
+from agente_local.application.ports.calendar_sync import CalendarSyncTokenExpiredError
 
 
 # ---------------------------------------------------------------------------
@@ -318,3 +320,22 @@ async def test_list_events_skips_blank_cancelled(adapter: CalendarSyncAdapter) -
         )
 
     assert events == []
+
+
+@pytest.mark.asyncio
+async def test_list_events_raises_calendar_sync_token_expired_error_on_http_410(
+    adapter: CalendarSyncAdapter,
+) -> None:
+    with patch("agente_local.infrastructure.calendar_sync.build") as mock_build:
+        service = MagicMock()
+        mock_build.return_value = service
+
+        response = MagicMock()
+        response.status = 410
+        service.events.return_value.list.return_value.execute.side_effect = HttpError(
+            resp=response,
+            content=b'{"error":{"code":410,"message":"Sync token is no longer valid"}}',
+        )
+
+        with pytest.raises(CalendarSyncTokenExpiredError):
+            await adapter.list_events("account_001", _FAKE_CALENDAR_ID, sync_token=_FAKE_SYNC_TOKEN)

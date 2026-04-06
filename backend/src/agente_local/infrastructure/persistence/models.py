@@ -75,6 +75,52 @@ class GmailThreadModel(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
+class CalendarSourceModel(Base):
+    __tablename__ = "calendar_source"
+    __table_args__ = (UniqueConstraint("account_id", "google_calendar_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspace_account.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    google_calendar_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    summary: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    primary_flag: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    selected_flag: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))
+    timezone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
+class CalendarEventModel(Base):
+    __tablename__ = "calendar_event"
+    __table_args__ = (UniqueConstraint("calendar_source_id", "google_event_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    calendar_source_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("calendar_source.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    google_event_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    summary: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    organizer_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    attendees_json: Mapped[list] = mapped_column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    all_day: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    meet_link: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    etag: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    updated_remote_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
 class SyncCursorModel(Base):
     __tablename__ = "sync_cursor"
     __table_args__ = (UniqueConstraint("account_id", "resource_type", "resource_key"),)

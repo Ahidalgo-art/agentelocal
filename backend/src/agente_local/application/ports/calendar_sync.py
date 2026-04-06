@@ -6,6 +6,10 @@ from datetime import datetime
 from typing import List, Optional
 
 
+class CalendarSyncTokenExpiredError(Exception):
+    """Raised when Google invalidates a calendar incremental sync token."""
+
+
 @dataclass(frozen=True)
 class CalendarEvent:
     """Calendar event."""
