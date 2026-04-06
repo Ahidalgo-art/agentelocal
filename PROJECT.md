@@ -2,14 +2,14 @@
 
 ## 1) Estado global
 - Estado: `BOOTSTRAP` (proyecto recién inicializado).
-- Sprint activo: `Sprint 0`.
-- Objetivo inmediato: establecer baseline técnico y operativo.
+- Sprint activo: `Sprint 1`.
+- Objetivo inmediato: avanzar la capability de correo+calendar según `PROJECT_CORREO_AGENT.md`.
 
 ## 2) Próximos pasos (orden recomendado)
-1. Definir ADR de arquitectura base (`docs/adr/ADR-0001-arquitectura-base.md`).
-2. Crear esqueleto backend hexagonal y endpoint `GET /v1/health`.
-3. Configurar CI mínimo (`lint + tests + security + smoke`).
-4. Definir política de secretos/config por entorno.
+1. Implementar sync Gmail incremental con persistencia de estado (`sync_cursor` + `sync_run`).
+2. Implementar sync Calendar incremental y recuperación controlada.
+3. Consolidar shortlist de hilos importantes con trazabilidad de decisión.
+4. Mantener human-in-the-loop para propuestas y creación de drafts.
 
 ## 3) Bloqueos actuales
 - Ninguno registrado.
@@ -53,7 +53,7 @@ Invoke-RestMethod -Method Get -Uri http://127.0.0.1:8000/v1/health | ConvertTo-J
 - Evidencia verificable:
 	- Commit de cierre técnico: `2520da6a290f4db39bd4f6b571668a4cd4c90de2`.
 	- Run exitoso de CI: `https://github.com/Ahidalgo-art/agentelocal/actions/runs/24030561185` (`quality-security-gates: success`).
-- Próximo paso: iniciar la primera feature de negocio del Sprint 1 (`POST /v1/rates/import`) manteniendo patrón hexagonal.
+- Próximo paso: avanzar capability de correo/calendar definida en `PROJECT_CORREO_AGENT.md` y `docs/specs/SPEC_CORREO_CALENDAR_AGENT_LOCAL.md`.
 - Riesgos/deuda residual: ninguno crítico para arranque de Sprint 1.
 
 ### 2026-04-06 — Cierre de política de secretos/config por entorno
@@ -70,3 +70,9 @@ Invoke-RestMethod -Method Get -Uri http://127.0.0.1:8000/v1/health | ConvertTo-J
 - Estado al pausar: baseline documental creado.
 - Próximo paso: implementar esqueleto backend y CI.
 - Riesgos: ninguno crítico.
+
+## Bitácora — 2026-04-06
+- **Completado:** Git inicializado y repo publicado en `https://github.com/Ahidalgo-art/agentelocal.git`; CI corregido en `.github/workflows/backend_ci.yml` (rutas + PostgreSQL service para migraciones); baseline de secretos/config cerrado (`.gitignore`, `backend/.env.example`, runbook) y `Backend CI` en verde.
+- **En proceso:** Ninguno; lo ejecutado hoy quedó `DONE` según AGENTS.md con evidencia en commits y Actions.
+- **Próxima sesión:** Implementar siguiente incremento de correo/calendar en `backend/src/agente_local/application/ports/` + `backend/src/agente_local/infrastructure/` para sync incremental, con tests en `backend/tests/` sin romper contratos actuales.
+- **Riesgos / deuda:** Evitar desvíos a ejemplos de plantilla; el alcance válido para este repo está en `PROJECT_CORREO_AGENT.md` y `docs/specs/SPEC_CORREO_CALENDAR_AGENT_LOCAL.md`.

@@ -333,30 +333,13 @@ Antes de declarar el proyecto como "inicializado y listo para desarrollo":
 
 ### Semana 1 — Primera feature real (patrón hexagonal)
 
-Implementa un endpoint de negocio completo (ej: `POST /v1/rates/import`):
-
-```
-backend/src/NOMBRE_PROYECTO/
-├── domain/
-│   └── rate.py                         ← Entity + value objects (sin imports de framework)
-├── application/
-│   ├── ports/
-│   │   └── rate_repository.py          ← Interface abstracta (protocolo)
-│   └── services/
-│       └── import_rates_service.py     ← Caso de uso (usa puerto, no implementación)
-├── infrastructure/
-│   └── persistence/
-│       ├── sqlalchemy_rate_repo.py     ← Implementación concreta del puerto
-│       └── models.py                   ← SQLAlchemy ORM
-└── entrypoints/
-    └── api/v1/endpoints/
-        └── rates.py                    ← FastAPI router
-```
+Implementa un incremento de correo/calendar definido en `PROJECT_CORREO_AGENT.md` y `docs/specs/SPEC_CORREO_CALENDAR_AGENT_LOCAL.md`.
 
 **Criterios de aceptación:**
-- [ ] `domain/rate.py` no importa FastAPI ni SQLAlchemy
-- [ ] Tests pasan sin BD real (inyectando fake repository)
-- [ ] Endpoint incluye `trace_id`, código de error estándar y latencia registrada
+- [ ] El dominio no importa FastAPI ni SQLAlchemy
+- [ ] Tests del caso de uso pasan sin BD real (inyectando fakes)
+- [ ] El incremento mantiene trazabilidad (`trace_id`) y errores API en inglés
+- [ ] La tarea implementada coincide con el roadmap de correo/calendar (no ejemplos genéricos de plantilla)
 
 ### Semana 2 — Observabilidad completa
 
@@ -506,11 +489,16 @@ Lee estos archivos y responde antes de actuar:
 1. `PROJECT.md` → última entrada de la bitácora: ¿dónde nos quedamos y cuál era el próximo paso?
 2. `.github/copilot-instructions.md` → ¿qué capas están permitidas para el cambio de hoy?
 3. `AGENTS.md` → ¿qué gate aplica al trabajo pendiente?
+4. `PROJECT_CORREO_AGENT.md` y `docs/specs/SPEC_CORREO_CALENDAR_AGENT_LOCAL.md` → ¿el próximo paso está alineado con el alcance correo/calendar?
 
 Una vez leídos, dame este briefing:
 - Estado al pausar (1-2 frases)
 - Próximo paso exacto pendiente
 - Algún riesgo o bloqueo identificado en la sesión anterior
+
+Antes de implementar, añade una validación explícita de alcance:
+- "Scope check": confirmar que la tarea pertenece al roadmap de correo/calendar.
+- Si aparece un ejemplo genérico de plantilla (p.ej. `rates/import`) y no está en `PROJECT_CORREO_AGENT.md`, no implementarlo.
 
 Luego procede con ese próximo paso siguiendo el flujo de AGENTS.md:
 Understand → Inspect → Plan → (Gate si aplica) → Implement → Verify → Report
